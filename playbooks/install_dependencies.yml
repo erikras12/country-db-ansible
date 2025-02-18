@@ -1,0 +1,47 @@
+- hosts: dev
+  become: true
+  tasks:
+    # Install required packages for Docker
+    - name: Install required packages for Docker
+      yum:
+        name:
+          - yum-utils
+          - device-mapper-persistent-data
+          - lvm2
+        state: present
+
+    # Add Docker repository for Amazon Linux
+    - name: Add Docker repository for Amazon Linux
+      command: amazon-linux-extras install docker -y
+      when: ansible_distribution == "Amazon"
+
+    # Install Docker
+    - name: Install Docker
+      yum:
+        name: docker
+        state: present
+
+    # Start and enable Docker service
+    - name: Start and enable Docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    # Install Docker Compose
+    - name: Install Docker Compose
+      shell: |
+        curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+        chmod +x /usr/local/bin/docker-compose
+
+    # Verify Docker installation
+    - name: Verify Docker installation
+      command: docker --version
+      register: docker_version
+
+
+    # Verify Docker Compose installation
+    - name: Verify Docker Compose installation
+      command: docker-compose --version
+      register: docker_compose_version
+
